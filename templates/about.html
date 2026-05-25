@@ -1,0 +1,88 @@
+<!-- templates/about.html -->
+{% extends "base.html" %}
+
+{% block title %}About - Intern Readiness Predictor{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-info-circle me-2"></i>About This Project</h4>
+            </div>
+            <div class="card-body">
+                <h5>Project Overview</h5>
+                <p>
+                    The <strong>Graphura Intern Portfolio Readiness Scorer</strong> is an AI-powered platform designed 
+                    to help Graphura evaluate how job-ready interns are by analyzing their portfolios, projects, 
+                    skills, tools, and presentation.
+                </p>
+                
+                <h5 class="mt-4">Business Objective</h5>
+                <p>
+                    To create a data-driven system that objectively evaluates intern portfolios, identifies top-performing 
+                    interns, improves training outcomes, and supports hiring, placement, and employer branding initiatives.
+                </p>
+                
+                <h5 class="mt-4">Key Features</h5>
+                <ul>
+                    <li><strong>Resume Evaluation:</strong> Upload and get instant AI-powered analysis of job readiness</li>
+                    <li><strong>Comparison Panel:</strong> Compare up to 6 resumes side-by-side</li>
+                    <li><strong>Analytics Dashboard:</strong> View key metrics and department-wise performance</li>
+                    <li><strong>Leaderboard:</strong> See top-performing interns</li>
+                    <li><strong>Personalized Recommendations:</strong> Get actionable feedback for improvement</li>
+                </ul>
+                
+                <h5 class="mt-4">How It Works</h5>
+                <ol>
+                    <li>Resume text is extracted using PDF parsing libraries</li>
+                    <li>Features are extracted (projects, skills, experience, certifications, etc.)</li>
+                    <li>ML model predicts readiness score and classification</li>
+                    <li>Personalized recommendations are generated</li>
+                </ol>
+                
+                <h5 class="mt-4">Technology Stack</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>Backend:</strong> Flask (Python)</li>
+                            <li><strong>ML Framework:</strong> Scikit-learn, Random Forest</li>
+                            <li><strong>PDF Processing:</strong> pdfplumber, PyPDF2</li>
+                            <li><strong>Data Processing:</strong> Pandas, NumPy</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li><strong>Frontend:</strong> Bootstrap 5, Chart.js</li>
+                            <li><strong>Visualization:</strong> Chart.js for interactive charts</li>
+                            <li><strong>Model Serialization:</strong> Joblib</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h5 class="mt-4">Readiness Classification</h5>
+                <div class="row text-center mt-3">
+                    <div class="col-md-4">
+                        <div class="badge bg-success p-3 w-100">
+                            <h6 class="mb-0">Job Ready (80-100)</h6>
+                            <small>Ready for immediate placement</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="badge bg-warning p-3 w-100 text-dark">
+                            <h6 class="mb-0">Almost Ready (50-79)</h6>
+                            <small>Needs minor improvements</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="badge bg-danger p-3 w-100">
+                            <h6 class="mb-0">Needs Improvement (0-49)</h6>
+                            <small>Significant gaps to address</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

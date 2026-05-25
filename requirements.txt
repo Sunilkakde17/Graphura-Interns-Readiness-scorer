@@ -1,0 +1,12 @@
+# requirements.txt
+flask
+pandas
+numpy
+scikit-learn
+pdfplumber
+PyPDF2
+openpyxl
+joblib
+python-dotenv
+Werkzeug
+requests 

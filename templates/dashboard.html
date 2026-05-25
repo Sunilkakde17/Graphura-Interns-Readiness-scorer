@@ -1,0 +1,374 @@
+<!-- templates/dashboard.html - Advanced Analytics Dashboard with Filters -->
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .metric-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    .metric-card:hover { transform: translateY(-5px); }
+    .metric-value { font-size: 2rem; font-weight: bold; }
+    .metric-label { color: #666; font-size: 0.9rem; margin-top: 5px; }
+    .trend-up { color: #28a745; }
+    .trend-down { color: #dc3545; }
+    .insight-card {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .filter-bar {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .weakness-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .weakness-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: #dc3545;
+        margin-top: 5px;
+    }
+    .export-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .export-btn:hover { background: #218838; transform: translateY(-2px); }
+</style>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-3"><i class="fas fa-chart-line me-2"></i>Analytics Dashboard</h2>
+        <p class="text-muted">Comprehensive insights on intern portfolio performance and readiness metrics</p>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="row align-items-end">
+        <div class="col-md-4">
+            <label class="form-label fw-bold"><i class="fas fa-building me-1"></i>Department</label>
+            <select id="deptFilter" class="form-select" onchange="applyFilters()">
+                <option value="all">All Departments</option>
+                <option value="Technical">Technical</option>
+                <option value="Non-Technical">Non-Technical</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold"><i class="fas fa-chart-line me-1"></i>Readiness Level</label>
+            <select id="readinessFilter" class="form-select" onchange="applyFilters()">
+                <option value="all">All Levels</option>
+                <option value="Job Ready">Job Ready</option>
+                <option value="Almost Ready">Almost Ready</option>
+                <option value="Needs Improvement">Needs Improvement</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button class="export-btn w-100" onclick="exportData()">
+                <i class="fas fa-download me-2"></i>Export Data (CSV)
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row g-4 mb-4" id="keyMetrics">
+    <div class="col-md-3">
+        <div class="metric-card">
+            <i class="fas fa-users fa-2x text-primary"></i>
+            <div class="metric-value" id="totalInterns">--</div>
+            <div class="metric-label">Total Interns Evaluated</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <i class="fas fa-check-circle fa-2x text-success"></i>
+            <div class="metric-value" id="jobReadyCount">--</div>
+            <div class="metric-label">Job Ready</div>
+            <small id="jobReadyPercent" class="trend-up">0%</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <i class="fas fa-chart-line fa-2x text-warning"></i>
+            <div class="metric-value" id="almostReadyCount">--</div>
+            <div class="metric-label">Almost Ready</div>
+            <small id="almostReadyPercent">0%</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+            <div class="metric-value" id="needsImprovementCount">--</div>
+            <div class="metric-label">Needs Improvement</div>
+            <small id="needsPercent">0%</small>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Readiness Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="readinessChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Average Evaluation Scores</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="evalScoresChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-building me-2"></i>Department-wise Performance</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="deptChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Score Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="scoreDistributionChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performers & Weaknesses -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-trophy me-2 text-warning"></i>Top 5 Performing Interns</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush" id="topPerformersList"></ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Most Common Weakness Areas</h5>
+            </div>
+            <div class="card-body" id="weaknessList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Insights & Recommendations Row -->
+<div class="row g-4">
+    <div class="col-md-12">
+        <div class="insight-card">
+            <h5><i class="fas fa-lightbulb me-2"></i>Key Insights & Recommendations</h5>
+            <div class="row mt-3" id="insightsContainer">
+                <div class="col-md-4">
+                    <div class="text-center p-3 bg-white bg-opacity-10 rounded">
+                        <i class="fas fa-chart-line fa-2x mb-2"></i>
+                        <div id="avgScore">--</div>
+                        <small>Average Portfolio Score</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-3 bg-white bg-opacity-10 rounded">
+                        <i class="fas fa-users fa-2x mb-2"></i>
+                        <div id="placementRate">--</div>
+                        <small>Placement Ready Rate</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-3 bg-white bg-opacity-10 rounded">
+                        <i class="fas fa-chart-line fa-2x mb-2"></i>
+                        <div id="topDept">--</div>
+                        <small>Top Performing Department</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+let readinessChart, evalScoresChart, deptChart, scoreDistChart;
+
+async function loadDashboard() {
+    const dept = document.getElementById('deptFilter').value;
+    const readiness = document.getElementById('readinessFilter').value;
+    
+    try {
+        const response = await fetch(`/api/filtered_stats?department=${dept}&readiness=${readiness}`);
+        const data = await response.json();
+        
+        if (data.success && data.stats) {
+            const stats = data.stats;
+            
+            // Update metrics
+            document.getElementById('totalInterns').innerText = stats.total || 0;
+            document.getElementById('jobReadyCount').innerText = stats.job_ready || 0;
+            document.getElementById('almostReadyCount').innerText = stats.almost_ready || 0;
+            document.getElementById('needsImprovementCount').innerText = stats.needs_improvement || 0;
+            
+            if (stats.total > 0) {
+                document.getElementById('jobReadyPercent').innerHTML = `<i class="fas fa-arrow-up"></i> ${((stats.job_ready/stats.total)*100).toFixed(1)}%`;
+                document.getElementById('almostReadyPercent').innerHTML = `${((stats.almost_ready/stats.total)*100).toFixed(1)}%`;
+                document.getElementById('needsPercent').innerHTML = `${((stats.needs_improvement/stats.total)*100).toFixed(1)}%`;
+            }
+            
+            // Readiness Chart
+            if (readinessChart) readinessChart.destroy();
+            readinessChart = new Chart(document.getElementById('readinessChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Job Ready', 'Almost Ready', 'Needs Improvement'],
+                    datasets: [{ data: [stats.job_ready || 0, stats.almost_ready || 0, stats.needs_improvement || 0], 
+                                backgroundColor: ['#28a745', '#ffc107', '#dc3545'], borderWidth: 0 }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+            
+            // Evaluation Scores Chart
+            if (evalScoresChart) evalScoresChart.destroy();
+            evalScoresChart = new Chart(document.getElementById('evalScoresChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Skills', 'Projects', 'Documentation', 'Experience'],
+                    datasets: [{ label: 'Average Score (out of 10)', data: stats.eval_scores || [0,0,0,0], backgroundColor: '#17a2b8', borderRadius: 8 }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
+            });
+            
+            // Department Chart
+            if (deptChart) deptChart.destroy();
+            deptChart = new Chart(document.getElementById('deptChart'), {
+                type: 'bar',
+                data: {
+                    labels: stats.dept_labels || ['Technical', 'Non-Technical'],
+                    datasets: [{ label: 'Average Portfolio Score', data: stats.dept_scores || [0,0], backgroundColor: '#0d6efd', borderRadius: 8 }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+            
+            // Score Distribution Chart
+            if (scoreDistChart) scoreDistChart.destroy();
+            scoreDistChart = new Chart(document.getElementById('scoreDistributionChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+                    datasets: [{ label: 'Number of Interns', data: stats.distribution || [0,0,0,0,0], backgroundColor: '#6c757d', borderRadius: 8 }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: 'Count' } } } }
+            });
+            
+            // Top Performers
+            const topList = document.getElementById('topPerformersList');
+            topList.innerHTML = '';
+            (stats.top_performers || []).forEach((p, idx) => {
+                let medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx+1}.`));
+                topList.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>${medal} <strong>${p[0]}</strong></span>
+                    <span class="badge bg-primary rounded-pill">${p[1]} pts</span>
+                </li>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+    }
+}
+
+async function loadFullStats() {
+    try {
+        const response = await fetch('/api/dashboard_stats');
+        const data = await response.json();
+        
+        if (data.success) {
+            const stats = data.stats;
+            document.getElementById('avgScore').innerText = stats.average_score || 0;
+            const placementRate = ((stats.job_ready_count / stats.total_interns) * 100).toFixed(1);
+            document.getElementById('placementRate').innerText = `${placementRate}%`;
+            
+            // Find top department
+            if (stats.dept_scores) {
+                let topDeptName = '', topDeptScore = 0;
+                for (const [dept, score] of Object.entries(stats.dept_scores)) {
+                    if (score > topDeptScore) {
+                        topDeptScore = score;
+                        topDeptName = dept;
+                    }
+                }
+                document.getElementById('topDept').innerHTML = `${topDeptName}<br><small>${topDeptScore} avg score</small>`;
+            }
+            
+            // Weakness Areas
+            if (stats.weaknesses) {
+                const weaknessList = document.getElementById('weaknessList');
+                weaknessList.innerHTML = '';
+                stats.weaknesses.forEach(w => {
+                    weaknessList.innerHTML += `
+                        <div class="weakness-item">
+                            <span><i class="fas fa-exclamation-circle text-danger me-2"></i>${w.name}</span>
+                            <span><strong>${w.count}</strong></span>
+                        </div>
+                        <div class="weakness-bar" style="width: ${(w.count / stats.total_interns) * 100}%;"></div>
+                    `;
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading full stats:', error);
+    }
+}
+
+function applyFilters() {
+    loadDashboard();
+}
+
+function exportData() {
+    const dept = document.getElementById('deptFilter').value;
+    const readiness = document.getElementById('readinessFilter').value;
+    window.location.href = `/api/export_data?department=${dept}&readiness=${readiness}`;
+}
+
+// Load all data
+loadDashboard();
+loadFullStats();
+</script>
+{% endblock %}

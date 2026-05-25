@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<h3><i class="fas fa-trophy me-2"></i>Intern Leaderboard</h3>
+<p>Top performing interns based on portfolio readiness score</p>
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="leaderTable">
+                <thead class="table-dark">
+                    <tr><th>Rank</th><th>Intern ID</th><th>Name</th><th>Role</th><th>Department</th><th>Score</th><th>Readiness</th></tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function loadLeaderboard() {
+    try {
+        const response = await fetch('/api/leaderboard_data');
+        const data = await response.json();
+        
+        if (data.success) {
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+            
+            data.data.forEach((intern, idx) => {
+                let badgeClass = '';
+                let badgeText = '';
+                
+                if (intern.readiness_label === 'Job Ready') {
+                    badgeClass = 'bg-success';
+                    badgeText = 'Job Ready';
+                } else if (intern.readiness_label === 'Almost Ready') {
+                    badgeClass = 'bg-warning text-dark';
+                    badgeText = 'Almost Ready';
+                } else {
+                    badgeClass = 'bg-danger';
+                    badgeText = 'Needs Improvement';
+                }
+                
+                const row = `
+                    <tr>
+                        <td><strong>${idx + 1}</strong></td>
+                        <td>${intern.Intern_ID || '-'}</td>
+                        <td>${intern.Name || '-'}</td>
+                        <td>${intern.Role || '-'}</td>
+                        <td>${intern.Department || '-'}</td>
+                        <td><strong>${intern.portfolio_score_100}</strong></td>
+                        <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        } else {
+            document.getElementById('leaderboardBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load data</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('leaderboardBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading leaderboard</td></tr>';
+    }
+}
+
+loadLeaderboard();
+</script>
+{% endblock %}

@@ -1,0 +1,219 @@
+<!-- templates/index.html - Enhanced Home Page -->
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 50px;
+        color: white;
+        margin-bottom: 40px;
+    }
+    .feature-card {
+        text-align: center;
+        padding: 30px;
+        border-radius: 15px;
+        transition: all 0.3s;
+        height: 100%;
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+    .stat-card-home {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .testimonial-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px;
+        text-align: center;
+    }
+    .step-circle {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 15px;
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section text-center">
+    <h1 class="display-3 fw-bold mb-3">Intern Portfolio Readiness Scorer</h1>
+    <p class="lead mb-4">AI-powered platform to evaluate intern portfolios, predict job readiness, and provide actionable feedback for career growth.</p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="/evaluate" class="btn btn-light btn-lg">
+            <i class="fas fa-upload me-2"></i>Evaluate Resume
+        </a>
+        <a href="/compare" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-chart-simple me-2"></i>Compare Resumes
+        </a>
+        <a href="/dashboard" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-tachometer-alt me-2"></i>View Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="row g-4 mb-5" id="homeStats">
+    <div class="col-md-3">
+        <div class="stat-card-home">
+            <i class="fas fa-users fa-2x text-primary mb-2"></i>
+            <h2 id="homeTotal">--</h2>
+            <p class="text-muted mb-0">Total Interns Evaluated</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-home">
+            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+            <h2 id="homeJobReady">--</h2>
+            <p class="text-muted mb-0">Job Ready Interns</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-home">
+            <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+            <h2 id="homeAvgScore">--</h2>
+            <p class="text-muted mb-0">Average Readiness Score</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-home">
+            <i class="fas fa-building fa-2x text-warning mb-2"></i>
+            <h2 id="homeDepts">--</h2>
+            <p class="text-muted mb-0">Roles Covered</p>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="row g-4 mb-5">
+    <div class="col-md-12">
+        <h3 class="text-center mb-4">Why Choose Graphura Portfolio Scorer?</h3>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-robot fa-2x text-white"></i>
+            </div>
+            <h5>AI-Powered Analysis</h5>
+            <p class="text-muted">Advanced machine learning algorithms analyze your resume and predict job readiness with high accuracy.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line fa-2x text-white"></i>
+            </div>
+            <h5>Real-time Comparison</h5>
+            <p class="text-muted">Compare multiple resumes side-by-side to identify top candidates and areas for improvement.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-lightbulb fa-2x text-white"></i>
+            </div>
+            <h5>Personalized Feedback</h5>
+            <p class="text-muted">Get actionable recommendations tailored to your specific resume gaps and target role.</p>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h3 class="text-center mb-4">How It Works</h3>
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="step-circle">1</div>
+                <h6>Upload Resume</h6>
+                <small class="text-muted">PDF or TXT format</small>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="step-circle">2</div>
+                <h6>AI Analysis</h6>
+                <small class="text-muted">Feature extraction & scoring</small>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="step-circle">3</div>
+                <h6>Get Score</h6>
+                <small class="text-muted">Readiness assessment</small>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="step-circle">4</div>
+                <h6>Improve & Succeed</h6>
+                <small class="text-muted">Actionable insights</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Testimonials -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h3 class="text-center mb-4">What Interns Say</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <i class="fas fa-quote-left fa-2x text-primary mb-2"></i>
+                    <p class="mb-2">"This tool helped me identify exactly what was missing in my resume. Got hired within 2 weeks!"</p>
+                    <strong>- Lokesh Patil</strong>
+                    <div><small>Backend Developer</small></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <i class="fas fa-quote-left fa-2x text-primary mb-2"></i>
+                    <p class="mb-2">"The comparison feature helped me see how my resume stacked up against others. Very useful!"</p>
+                    <strong>- Jagriti Sethi</strong>
+                    <div><small>Social Media Manager</small></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <i class="fas fa-quote-left fa-2x text-primary mb-2"></i>
+                    <p class="mb-2">"Detailed category scores showed me exactly where to focus my improvement efforts."</p>
+                    <strong>- Kuldeep Thakur</strong>
+                    <div><small>Data Scientist</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+fetch('/api/dashboard_stats')
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            document.getElementById('homeTotal').innerText = data.stats.total_interns;
+            document.getElementById('homeJobReady').innerText = data.stats.job_ready_count;
+            document.getElementById('homeAvgScore').innerText = data.stats.average_score;
+            document.getElementById('homeDepts').innerText = '2';
+        }
+    });
+</script>
+{% endblock %}

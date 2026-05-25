@@ -1,0 +1,507 @@
+<!-- templates/evaluate.html - Streak section removed -->
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .score-section { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+    .score-circle { width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+    .score-number { font-size: 2.5rem; font-weight: bold; }
+    .category-card { border-left: 4px solid; margin-bottom: 10px; transition: transform 0.2s; background: #f8f9fa; border-radius: 8px; padding: 15px; }
+    .category-card:hover { transform: translateX(5px); }
+    .tip-card { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+    .tip-card:hover { background: #e9ecef; transform: translateY(-2px); }
+    .upload-area { border: 2px dashed #dee2e6; border-radius: 15px; cursor: pointer; transition: all 0.3s; }
+    .upload-area:hover { border-color: #667eea; background: #f8f9fa; }
+    .github-card { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border-radius: 12px; }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-file-alt me-2"></i>Resume Evaluation & Analysis</h4>
+                <small>Upload your resume - AI will analyze and auto-detect GitHub profile</small>
+            </div>
+            <div class="card-body">
+                <!-- Upload Section -->
+                <div class="upload-area text-center p-5 mb-4" id="dropzone">
+                    <i class="fas fa-cloud-upload-alt fa-4x text-muted mb-3"></i>
+                    <h5>Drag & Drop or Click to Upload</h5>
+                    <p class="text-muted">Supports PDF, TXT files (Max 16MB)</p>
+                    <p class="small text-muted">GitHub link will be automatically detected from your resume</p>
+                    <input type="file" id="fileInput" accept=".pdf,.txt" style="display:none">
+                    <button class="btn btn-primary btn-lg" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-upload me-2"></i>Select Resume
+                    </button>
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div id="loading" class="text-center py-5" style="display:none;">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+                    <p class="mt-3">Analyzing your resume with AI...</p>
+                    <div class="progress mt-3" style="height: 5px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <!-- Results Container -->
+                <div id="result" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.getElementById('fileInput').addEventListener('change', async function(e) {
+    if (e.target.files.length === 0) return;
+    
+    const formData = new FormData();
+    formData.append('resume', e.target.files[0]);
+    
+    document.getElementById('dropzone').style.display = 'none';
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/predict', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dropzone').style.display = 'block';
+        
+        if (data.success) {
+            displayResults(data);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dropzone').style.display = 'block';
+        alert('Error: ' + error);
+    }
+});
+
+function displayResults(data) {
+    const score = data.confidence_score;
+    let scoreText = score >= 80 ? 'Excellent' : (score >= 55 ? 'Good' : 'Needs Work');
+    
+    let detailedScoresHtml = '';
+    if (data.detailed_scores) {
+        const categories = [
+            { name: 'Contact Information', key: 'contact', max: 10, icon: 'fa-address-card' },
+            { name: 'Professional Summary', key: 'summary', max: 10, icon: 'fa-user' },
+            { name: 'Technical Skills', key: 'skills', max: 10, icon: 'fa-code' },
+            { name: 'Projects', key: 'projects', max: 10, icon: 'fa-folder-open' },
+            { name: 'Experience', key: 'experience', max: 10, icon: 'fa-briefcase' },
+            { name: 'Education', key: 'education', max: 10, icon: 'fa-graduation-cap' },
+            { name: 'Certifications', key: 'certifications', max: 10, icon: 'fa-certificate' },
+            { name: 'Formatting', key: 'formatting', max: 10, icon: 'fa-file-alt' }
+        ];
+        
+        categories.forEach(cat => {
+            let catScore = data.detailed_scores[cat.key] || 0;
+            let catColor = catScore >= 7 ? '#28a745' : (catScore >= 4 ? '#ffc107' : '#dc3545');
+            
+            detailedScoresHtml += `
+                <div class="category-card mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas ${cat.icon} me-2" style="color: ${catColor}"></i>
+                            <strong>${cat.name}</strong>
+                        </div>
+                        <div>
+                            <span class="badge" style="background: ${catColor}">${catScore}/${cat.max}</span>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar" role="progressbar" style="width: ${(catScore/cat.max)*100}%; background: ${catColor}"></div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    let strengthsHtml = '';
+    if (data.strengths && data.strengths.length) {
+        data.strengths.forEach(s => {
+            strengthsHtml += `<li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>${s}</li>`;
+        });
+    } else {
+        strengthsHtml = '<li class="list-group-item text-muted">No strengths identified yet. Add more content to your resume.</li>';
+    }
+    
+    let weaknessesHtml = '';
+    if (data.weaknesses && data.weaknesses.length) {
+        data.weaknesses.forEach(w => {
+            weaknessesHtml += `<li class="list-group-item"><i class="fas fa-exclamation-circle text-danger me-2"></i>${w}</li>`;
+        });
+    } else {
+        weaknessesHtml = '<li class="list-group-item text-success"><i class="fas fa-check-circle me-2"></i>Great job! No major issues found.</li>';
+    }
+    
+    let recommendationsHtml = '';
+    if (data.recommendations && data.recommendations.length) {
+        data.recommendations.forEach((r, idx) => {
+            recommendationsHtml += `
+                <div class="tip-card">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3">
+                            <span class="badge bg-primary rounded-circle p-2">${idx + 1}</span>
+                        </div>
+                        <div>
+                            <p class="mb-0">${r}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    // Auto-detected GitHub Analysis Section - NO STREAK SECTION
+    let githubHtml = '';
+    if (data.github_analysis && !data.github_analysis.error) {
+        const gh = data.github_analysis;
+        let completenessColor = gh.portfolio_completeness === 'Excellent' ? 'success' : 
+                               (gh.portfolio_completeness === 'Good' ? 'info' : 'warning');
+        
+        let chartId = 'langChart_' + Date.now();
+        let languagesHtml = '';
+        let chartHtml = '';
+        
+        if (gh.language_percentages && Object.keys(gh.language_percentages).length > 0) {
+            const langEntries = Object.entries(gh.language_percentages).slice(0, 5);
+            languagesHtml = langEntries.map(([lang, pct]) => `<span class="badge bg-primary m-1 p-2">${lang}: ${pct}%</span>`).join('');
+            
+            chartHtml = `
+                <div class="col-md-6 mt-3">
+                    <div class="p-3 border rounded bg-dark bg-opacity-25">
+                        <strong><i class="fas fa-chart-pie me-2"></i>Language Distribution</strong>
+                        <canvas id="${chartId}" height="150"></canvas>
+                        <div class="mt-2">
+                            ${languagesHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        let topReposHtml = '';
+        if (gh.top_repos && gh.top_repos.length) {
+            topReposHtml = `
+                <div class="mt-4">
+                    <strong><i class="fas fa-star me-2"></i>Top Repositories:</strong>
+                    <div class="row mt-2">
+                        ${gh.top_repos.map(repo => `
+                            <div class="col-md-6 mb-2">
+                                <div class="p-2 border rounded bg-dark bg-opacity-25">
+                                    <i class="fab fa-github me-2"></i>
+                                    <strong><a href="${repo.url}" target="_blank" class="text-white">${repo.name}</a></strong>
+                                    <br><small>⭐ ${repo.stars} stars | 🍴 ${repo.forks} forks</small>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        githubHtml = `
+            <div class="card mt-4 github-card">
+                <div class="card-header bg-dark text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fab fa-github me-2"></i>
+                            <strong>GitHub Profile Analysis (Auto-Detected)</strong>
+                            <small class="text-muted ms-2">github.com/${gh.username}</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-${completenessColor}">${gh.portfolio_completeness}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="p-3 border rounded bg-dark bg-opacity-25">
+                                <i class="fab fa-github fa-2x mb-2"></i>
+                                <h3 class="text-white">${gh.total_repos}</h3>
+                                <small>Total Repos</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 border rounded bg-dark bg-opacity-25">
+                                <i class="fas fa-code-commit fa-2x mb-2"></i>
+                                <h3 class="text-white">${gh.total_commits}</h3>
+                                <small>Total Commits</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 border rounded bg-dark bg-opacity-25">
+                                <i class="fas fa-code-branch fa-2x mb-2"></i>
+                                <h3 class="text-white">${gh.total_forks}</h3>
+                                <small>Total Forks</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 border rounded bg-dark bg-opacity-25">
+                                <i class="fas fa-star fa-2x mb-2 text-warning"></i>
+                                <h3 class="text-white">${gh.total_stars}</h3>
+                                <small>Stars Received</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center mt-3">
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded bg-dark bg-opacity-25">
+                                <i class="fas fa-calendar-week fa-2x mb-2"></i>
+                                <h4 class="text-white">${gh.weekly_commits}</h4>
+                                <small>Weekly Commits</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded bg-dark bg-opacity-25">
+                                <i class="fas fa-code fa-2x mb-2"></i>
+                                <h4 class="text-white">${gh.primary_language}</h4>
+                                <small>Primary Language</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 border rounded bg-dark bg-opacity-25">
+                                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                                <h4 class="text-${completenessColor}">${gh.readme_quality}</h4>
+                                <small>README Quality</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="alert alert-${completenessColor} bg-dark bg-opacity-50 text-white border-0">
+                                <strong>📈 Portfolio Completeness:</strong> ${gh.portfolio_completeness}
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-${completenessColor}" style="width: ${gh.portfolio_completeness === 'Excellent' ? 90 : (gh.portfolio_completeness === 'Good' ? 70 : 40)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-secondary bg-dark bg-opacity-50 text-white border-0">
+                                <strong>🕐 Last Active:</strong> ${gh.last_active}<br>
+                                <strong>📅 Account Age:</strong> ${gh.account_age} days
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-secondary bg-dark bg-opacity-50 text-white border-0">
+                                <strong>👥 Followers:</strong> ${gh.followers}<br>
+                                <strong>📁 Public Repos:</strong> ${gh.public_repos}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="p-2 border rounded bg-dark bg-opacity-25">
+                                <small>Coding Activity</small>
+                                <div class="progress mt-1" style="height: 8px;">
+                                    <div class="progress-bar bg-success" style="width: ${gh.activity_score}%"></div>
+                                </div>
+                                <small class="text-muted">${gh.activity_score}%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 border rounded bg-dark bg-opacity-25">
+                                <small>Documentation Quality</small>
+                                <div class="progress mt-1" style="height: 8px;">
+                                    <div class="progress-bar bg-info" style="width: ${gh.documentation_score}%"></div>
+                                </div>
+                                <small class="text-muted">${gh.documentation_score}%</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-2 border rounded bg-dark bg-opacity-25">
+                                <small>Community Engagement</small>
+                                <div class="progress mt-1" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" style="width: ${gh.community_score}%"></div>
+                                </div>
+                                <small class="text-muted">${gh.community_score}%</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-dark bg-opacity-25">
+                                <strong><i class="fas fa-code me-2"></i>Tech Stack</strong>
+                                <div class="mt-2">
+                                    ${gh.languages && gh.languages.length ? gh.languages.map(l => `<span class="badge bg-primary m-1 p-2">${l}</span>`).join('') : '<span class="text-muted">No languages detected</span>'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${chartHtml}
+                    ${topReposHtml}
+                    
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <strong><i class="fas fa-lightbulb me-2 text-warning"></i>GitHub Improvement Tips:</strong>
+                        <ul class="mt-2 small">
+                            ${gh.total_repos < 5 ? '<li><i class="fas fa-plus-circle text-warning me-2"></i>Create more repositories (aim for 5+)</li>' : ''}
+                            ${gh.weekly_commits < 10 ? '<li><i class="fas fa-code-commit text-warning me-2"></i>Increase commit frequency</li>' : ''}
+                            ${gh.readme_quality !== 'Excellent' ? '<li><i class="fas fa-file-alt text-warning me-2"></i>Add detailed README files</li>' : ''}
+                            <li><i class="fab fa-github text-info me-2"></i>Pin your best repositories to your profile</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-3 pt-2 border-top border-secondary">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            GitHub profile was automatically detected from your resume hyperlink.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            const ctx = document.getElementById(chartId);
+            if (ctx && gh.language_percentages && Object.keys(gh.language_percentages).length > 0) {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(gh.language_percentages).slice(0, 5),
+                        datasets: [{
+                            data: Object.values(gh.language_percentages).slice(0, 5),
+                            backgroundColor: ['#f39c12', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true }
+                });
+            }
+        }, 200);
+        
+    } else if (data.github_username) {
+        githubHtml = `
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fab fa-github me-2"></i>GitHub Detection</h6>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fab fa-github fa-3x text-muted mb-2"></i>
+                    <p>GitHub username detected: <strong>${data.github_username}</strong></p>
+                    <div class="alert alert-warning mt-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Could not fetch GitHub data. API rate limit or invalid token.
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        githubHtml = `
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fab fa-github me-2"></i>GitHub Auto-Detection</h6>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fab fa-github fa-3x text-muted mb-2"></i>
+                    <p class="mb-2">No GitHub profile found in your resume.</p>
+                    <div class="alert alert-info mt-2">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> Add your GitHub URL (e.g., https://github.com/username) to your resume for auto-detection
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    let badgeClass = data.readiness_level === 'Job Ready' ? 'success' : (data.readiness_level === 'Almost Ready' ? 'warning' : 'danger');
+    
+    const resultHtml = `
+        <div class="score-section text-center">
+            <div class="score-circle">
+                <div class="score-number">${score}</div>
+                <small>/100</small>
+            </div>
+            <h3>${data.prediction}</h3>
+            <p class="mb-0">Readiness Level: <strong>${data.readiness_level}</strong> - ${scoreText}</p>
+            <div class="progress mt-3" style="height: 10px;">
+                <div class="progress-bar bg-${badgeClass}" role="progressbar" style="width: ${score}%"></div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-star me-2"></i>Strengths</h6>
+                    </div>
+                    <ul class="list-group list-group-flush">${strengthsHtml}</ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Areas to Improve</h6>
+                    </div>
+                    <ul class="list-group list-group-flush">${weaknessesHtml}</ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Detailed Category Analysis</h6>
+            </div>
+            <div class="card-body">
+                ${detailedScoresHtml}
+            </div>
+        </div>
+        
+        ${githubHtml}
+        
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Personalized Recommendations</h6>
+            </div>
+            <div class="card-body">
+                ${recommendationsHtml}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="fas fa-tips me-2"></i>Quick Resume Tips</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fas fa-file-pdf fa-2x text-danger mb-2"></i>
+                            <p class="small mb-0">Save as PDF to preserve formatting</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                            <p class="small mb-0">Use action verbs and quantify achievements</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fab fa-github fa-2x text-dark mb-2"></i>
+                            <p class="small mb-0">Add GitHub link for auto-detection</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('result').innerHTML = resultHtml;
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %}

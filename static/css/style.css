@@ -1,0 +1,277 @@
+/* static/css/style.css */
+/* Graphura Portfolio Scorer Custom Styles */
+
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    --dark-color: #343a40;
+}
+
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    padding-top: 70px;
+}
+
+.main-content {
+    min-height: calc(100vh - 140px);
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+
+.navbar-brand i {
+    font-size: 1.6rem;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    padding: 0.625rem 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Tables */
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--dark-color);
+    color: white;
+    font-weight: 500;
+    border: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Badges */
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    border-radius: 50px;
+}
+
+/* Progress Bar */
+.progress {
+    border-radius: 50px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 50px;
+    font-weight: 500;
+}
+
+/* Alerts */
+.alert {
+    border-radius: 12px;
+    border: none;
+}
+
+/* Footer */
+.footer {
+    margin-top: auto;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Loading Spinner */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 3rem;
+    color: white;
+}
+
+.hero-section h1 {
+    color: white;
+}
+
+/* Score Circle */
+.score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0 auto;
+}
+
+.score-high {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.score-mid {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: white;
+}
+
+.score-low {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+/* Comparison Table */
+.comparison-table th,
+.comparison-table td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.comparison-table .table-success {
+    background-color: #d1e7dd;
+}
+
+.comparison-table .table-warning {
+    background-color: #fff3cd;
+}
+
+.comparison-table .table-danger {
+    background-color: #f8d7da;
+}
+
+/* Leaderboard Ranks */
+.rank-1 {
+    background-color: #fff3cd;
+}
+
+.rank-2 {
+    background-color: #e9ecef;
+}
+
+.rank-3 {
+    background-color: #f8f9fa;
+}
+
+.rank-1 td:first-child {
+    font-weight: bold;
+    color: #ffc107;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem;
+    }
+    
+    .hero-section h1 {
+        font-size: 1.8rem;
+    }
+    
+    .score-circle {
+        width: 90px;
+        height: 90px;
+        font-size: 1.8rem;
+    }
+    
+    .card-header h4, .card-header h5 {
+        font-size: 1.1rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Tooltips */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dark-color);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+}
