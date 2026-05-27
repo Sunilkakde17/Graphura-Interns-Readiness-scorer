@@ -1402,6 +1402,28 @@ def download_report():
                      download_name='resume_report.html')
 
 
+# For production on Render
+import os
+
+if __name__ != '__main__':
+    # When running on Render (gunicorn)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
+else:
+    # Local development
+    app.run(debug=True, host='0.0.0.0', port=5000)
+
+# For production file storage
+if os.environ.get('RENDER'):
+    # Use /tmp for temporary files (Render allows up to 512MB)
+    app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+else:
+    app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# In app.py, reduce to 2MB for better performance
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
+
+
 # ============================================
 # APPLICATION ENTRY POINT
 # ============================================
