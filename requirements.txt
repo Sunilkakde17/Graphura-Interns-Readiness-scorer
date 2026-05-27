@@ -10,3 +10,4 @@ joblib
 python-dotenv
 Werkzeug
 requests 
+gunicorn
